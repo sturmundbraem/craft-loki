@@ -1,10 +1,10 @@
 <?php
 
-namespace sturmundbraem\automatisations\controllers;
+namespace stubr\controllers;
 
 use Craft;
 use craft\web\Controller;
-use sturmundbraem\automatisations\Plugin;
+use stubr\Plugin;
 
 class PromptsController extends Controller{
 

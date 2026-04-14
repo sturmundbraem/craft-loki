@@ -1,5 +1,5 @@
 {
-  "name": "sturmundbraem/automatisations",
+  "name": "stubr/craft-cp-ai",
   "description": "The automatisations is a field type which allows to show a specified list of assets on the website for downloading.",
   "type": "craft-plugin",
   "keywords": ["sturmundbraem", "stubr", "automatisations", "documents", "assets"],
@@ -17,7 +17,7 @@
   },
   "autoload": {
     "psr-4": {
-      "sturmundbraem\\automatisations\\": "src/"
+      "stubr\\": "src/"
     }
   },
   "extra": {

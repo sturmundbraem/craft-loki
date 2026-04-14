@@ -1,11 +1,11 @@
 <?php
 
-namespace sturmundbraem\automatisations\services;
+namespace stubr\services;
 
-use sturmundbraem\automatisations\services\providers\OpenAiProvider;
-use sturmundbraem\automatisations\services\providers\LlmProviderInterface;
-use sturmundbraem\automatisations\services\providers\ClaudeProvider;
-use sturmundbraem\automatisations\services\providers\DeepLProvider;
+use stubr\services\providers\OpenAiProvider;
+use stubr\services\providers\LlmProviderInterface;
+use stubr\services\providers\ClaudeProvider;
+use stubr\services\providers\DeepLProvider;
 
 
 class LlmProviderFactory
