@@ -1,9 +1,9 @@
 <?php
 
-namespace sturmundbraem\automatisations\services\providers;
+namespace stubr\services\providers;
 
 use GuzzleHttp\Client;
-use sturmundbraem\automatisations\services\providers\LlmProviderInterface;
+use stubr\services\providers\LlmProviderInterface;
 
 // Handles communication with the OpenAI (ChatGPT) API
 // Implements the interface so it has the same method signature as all other providers

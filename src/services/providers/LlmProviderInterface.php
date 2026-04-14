@@ -1,6 +1,6 @@
 <?php
 
-namespace sturmundbraem\automatisations\services\providers;
+namespace stubr\services\providers;
 
 // An interface is a contract — it defines which methods a class MUST have
 // Every LLM provider (OpenAI, Claude, etc.) must implement this interface

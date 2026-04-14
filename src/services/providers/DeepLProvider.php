@@ -1,8 +1,8 @@
 <?php
 
-namespace sturmundbraem\automatisations\services\providers;
+namespace stubr\services\providers;
 
-use sturmundbraem\automatisations\services\providers\LlmProviderInterface;
+use stubr\services\providers\LlmProviderInterface;
 use GuzzleHttp\Client;
 
 class DeepLProvider implements LlmProviderInterface

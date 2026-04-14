@@ -1,5 +1,5 @@
 <?php
-namespace sturmundbraem\automatisations;
+namespace stubr;
 
 use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;
@@ -11,7 +11,7 @@ class FieldHelperAsset extends AssetBundle
     public function init()
     {
         // Where the JS/CSS files are located (relative to this plugin's src folder)
-        $this->sourcePath = '@sturmundbraem/automatisations/resources';
+        $this->sourcePath = '@stubr/resources';
 
         // Load Craft's CP assets first (jQuery, Craft.sendActionRequest, etc.)
         // Our JS depends on these being available

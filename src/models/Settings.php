@@ -1,6 +1,6 @@
 <?php
 
-namespace sturmundbraem\automatisations\models;
+namespace stubr\models;
 
 use craft\base\Model;
 

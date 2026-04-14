@@ -1,6 +1,6 @@
 <?php
 
-namespace sturmundbraem\filepool\events;
+namespace stubr\events;
 
 use yii\base\Event;
 use craft\elements\db\AssetQuery;

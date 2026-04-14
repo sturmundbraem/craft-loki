@@ -1,9 +1,9 @@
 <?php
 
-namespace sturmundbraem\automatisations\services;
+namespace stubr\services;
 
-use sturmundbraem\automatisations\services\providers\OpenAiProvider;
-use sturmundbraem\automatisations\services\providers\LlmProviderInterface;
+use stubr\services\providers\OpenAiProvider;
+use stubr\services\providers\LlmProviderInterface;
 
 // The AI service acts as a bridge between the controller and the LLM providers
 // It reads the .env config to decide which provider to use, then forwards the request

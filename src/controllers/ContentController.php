@@ -1,12 +1,12 @@
 <?php
 
-namespace sturmundbraem\automatisations\controllers;
+namespace stubr\controllers;
 
 use Craft;
 use craft\elements\Entry;
 use craft\web\Controller;
-use sturmundbraem\automatisations\services\AIService;
-use sturmundbraem\automatisations\Plugin;
+use stubr\services\AIService;
+use stubr\Plugin;
 
 class ContentController extends \craft\web\Controller
 {

@@ -23,7 +23,7 @@ Add the repository to your composer.json
 ]
 ```
 
-Run `ddev c require sturmundbraem/automatisations`
+Run `ddev c require stubr/craft-cp-ai`
 
 Open the panel `ddev launch panel`, go to Settings -> Plugins and Install the Automatisations Plugin.
 
@@ -84,4 +84,4 @@ Fields without specific assignments will fall back to prompts marked as "All Pla
 
 ## Updating
 
-To update to the newest version of this package use `ddev c update sturmundbraem/automatisations`
+To update to the newest version of this package use `ddev c update stubr/craft-cp-ai`

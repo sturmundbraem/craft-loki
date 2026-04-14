@@ -1,5 +1,5 @@
 <?php
-namespace sturmundbraem\automatisations;
+namespace stubr;
 
 // Craft and Yii framework classes
 use Craft;
@@ -12,8 +12,8 @@ use craft\services\Fields;
 use craft\services\Plugins;
 
 // Plugin's own classes
-use sturmundbraem\automatisations\models\Settings;
-use sturmundbraem\automatisations\FieldHelperAsset;
+use stubr\models\Settings;
+use stubr\FieldHelperAsset;
 
 
 class Plugin extends \craft\base\Plugin
