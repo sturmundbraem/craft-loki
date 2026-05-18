@@ -24,10 +24,21 @@ class ContentController extends \craft\web\Controller
         $createDraft = Craft::$app->getRequest()->getBodyParam('createDraft');         
         $settings = Plugin::$plugin->getSettings();
 
-        $validPrompts = array_column($settings->prompts, 'text');
-        if (!in_array($prompt, $validPrompts)) {
+        // $validPrompts = array_column($settings->prompts, 'text');
+        // if (!in_array($prompt, $validPrompts)) {
+        //     return $this->asJson(['error' => 'Invalid prompt'], 400);
+        // }
+        $matchedPrompt = null;
+        foreach ($settings->prompts as $p) {
+            if ($p['text'] === $prompt) {
+                $matchedPrompt = $p;
+                break;
+            }
+        }
+        if ($matchedPrompt === null) {
             return $this->asJson(['error' => 'Invalid prompt'], 400);
         }
+        $basePrompt = $matchedPrompt['basePrompt'] ?? '';
 
         $allowedProviders = ['openai', 'claude', 'deepl'];
         if (!in_array($provider, $allowedProviders)) {
@@ -61,6 +72,12 @@ class ContentController extends \craft\web\Controller
             'entryTitle' => $entry->title,
         ]);
 
+        $basePrompt = Craft::$app->getView()->renderString($basePrompt, [
+            'siteLang' => $site->language,
+            'fieldHandle' => $fieldHandle,
+            'entryTitle' => $entry->title,
+        ]);
+
         // Build a context string with ALL field values from the entry
         // This gives the AI the full picture of the page content
         $fieldValues = $entry->getFieldValues();
@@ -74,7 +91,7 @@ class ContentController extends \craft\web\Controller
         $aiService = new AIService();
         
         try {
-            $generatedContent = $aiService->generateContent($prompt, $context, $fieldHandle, $provider);
+            $generatedContent = $aiService->generateContent($prompt, $context, $fieldHandle, $provider, $basePrompt);
         } catch (\Exception $e) {
             return $this->asJson(['error' => $e->getMessage()]);
         }
