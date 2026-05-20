@@ -52,8 +52,6 @@
             }) 
         }}
 
-        <button type="submit" class="btn submit">Save</button>
-
         <hr>
         <h2>Field Prompt Assignments</h2>
 
@@ -76,6 +74,9 @@
             </div>
         </div>
     </form>
+
+    <hr>
+    <button type="submit" class="btn submit">Save</button>
 
     <script>
         var allPrompts = {{ prompts|json_encode|raw }};
