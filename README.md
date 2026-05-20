@@ -18,7 +18,8 @@ Add the repository to your composer.json
 "repositories":[
     {
         "type": "vcs",
-        "url" : "git@github.com:sturmundbraem/craft-cp-ai.git"
+        "url" : "git@github.com:sturmundbraem/craft-cp-ai.git",
+        "no-api": true
     }
 ]
 ```
