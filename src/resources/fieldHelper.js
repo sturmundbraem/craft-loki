@@ -93,6 +93,22 @@ document.addEventListener('click', function(event) {
             
             menu.remove();
 
+            // Show a loading spinner over the target field while we wait for the AI.
+            // Find the field container, then float a fixed-position overlay over it.
+            var loadingField = btn.closest('.field');
+            var overlay = document.createElement('div');
+            overlay.className = 'ai-loading-overlay';
+            overlay.innerHTML = '<div class="spinner"></div>';
+            if (loadingField) {
+                var fieldRect = loadingField.getBoundingClientRect();
+                overlay.style.position = 'fixed';
+                overlay.style.top = fieldRect.top + 'px';
+                overlay.style.left = fieldRect.left + 'px';
+                overlay.style.width = fieldRect.width + 'px';
+                overlay.style.height = fieldRect.height + 'px';
+                document.body.appendChild(overlay);
+            }
+
             fetch(Craft.getActionUrl('craft-cp-ai/content/generate'), {
                 method: 'POST',
                 headers: {
@@ -117,6 +133,7 @@ document.addEventListener('click', function(event) {
             })
 
             .then(function(data) {
+                overlay.remove();
                 document.querySelectorAll('.ai-wand-btn').forEach(function(b) { b.disabled = false; });
                 if (data.error) {
                     alert('Error: ' + data.error);
@@ -132,6 +149,8 @@ document.addEventListener('click', function(event) {
 
             })
             .catch(function(error) {
+                overlay.remove();
+                document.querySelectorAll('.ai-wand-btn').forEach(function(b) { b.disabled = false; });
                 alert('Error: ' + error.message);
             });
 
