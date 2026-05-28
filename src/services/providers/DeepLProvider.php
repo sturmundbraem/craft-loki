@@ -10,9 +10,9 @@ class DeepLProvider implements LlmProviderInterface
     public function generateText($prompt, $context, $fieldHandle, string $systemPrompt):string {
         $client = new Client();
 
-        $apiKey = getenv('DEEPL_API_KEY');
+        $apiKey = App::parseEnv(Plugin::$plugin->getSettings()->deeplApiKey);
         if (!$apiKey) {
-            throw new \Exception('DEEPL API is not set in .env');
+            throw new \Exception('DeepL API key not configured');
         }
 
         $parts = explode(' ', trim($prompt));

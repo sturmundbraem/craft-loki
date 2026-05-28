@@ -4,6 +4,8 @@ namespace stubr\services\providers;
 
 use GuzzleHttp\Client;
 use stubr\services\providers\LlmProviderInterface;
+use craft\helpers\App;
+use stubr\Plugin;
 
 // Handles communication with the Claude API
 // Implements the interface so it has the same method signature as all other providers
@@ -20,11 +22,10 @@ class ClaudeProvider implements LlmProviderInterface
         $client = new Client();
 
         // Read the API key from the .env file — NEVER hardcode API keys!
-        $apiKey = getenv('CLAUDE_API_KEY');
+        $apiKey = App::parseEnv(Plugin::$plugin->getSettings()->claudeApiKey);
         if (!$apiKey) {
-            throw new \Exception('CLAUDE_API_KEY not set in .env');
+            throw new \Exception('Claude API key not configured');
         }
-
         // Send a POST request to Claude's chat completions endpoint
         try {
             $response = $client->post('https://api.anthropic.com/v1/messages', [

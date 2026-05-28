@@ -20,11 +20,10 @@ class OpenAiProvider implements LlmProviderInterface
         $client = new Client();
 
         // Read the API key from the .env file — NEVER hardcode API keys!
-        $apiKey = getenv('OPENAI_API_KEY');
+        $apiKey = App::parseEnv(Plugin::$plugin->getSettings()->openaiApiKey);
         if (!$apiKey) {
-            throw new \Exception('OPENAI_API_KEY not set in .env');
+            throw new \Exception('OpenAI API key not configured');
         }
-
 
         // Send a POST request to OpenAI's chat completions endpoint
         try {

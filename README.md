@@ -28,15 +28,12 @@ Run `ddev composer require stubr/craft-cp-ai`
 
 Open the panel `ddev launch panel`, go to Settings -> Plugins and Install the Plugin.
 
-### Environment Variables
+### APIs
 
-Add the following API keys to your `.env` file (only the providers you plan to use):
+API keys can be set in two ways:
 
-```
-OPENAI_API_KEY=sk-...
-CLAUDE_API_KEY=sk-ant-...
-DEEPL_API_KEY=...
-```
+1. Plugin Settings page (Settings → Plugins → Craft CP AI) — paste keys directly into the form, or reference an environment variable by typing $OPENAI_API_KEY (the field will autosuggest available env vars from your .env).
+2. .env file — set OPENAI_API_KEY=sk-..., CLAUDE_API_KEY=sk-ant-..., DEEPL_API_KEY=... and reference them as $OPENAI_API_KEY etc. in the Settings page.
 
 ## Usage
 

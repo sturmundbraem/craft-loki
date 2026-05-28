@@ -11,6 +11,9 @@ class Settings extends Model
 
     public array $fieldAssignments = [];
 
+    public string $openaiApiKey = '$OPENAI_API_KEY';
+    public string $claudeApiKey = '$CLAUDE_API_KEY';
+    public string $deeplApiKey = '$DEEPL_API_KEY';
 
     public array $prompts = [];
     public string $basePrompt = <<<TXT
