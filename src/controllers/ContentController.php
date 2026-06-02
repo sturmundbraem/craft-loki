@@ -101,9 +101,24 @@ class ContentController extends \craft\web\Controller
             // Create a draft copy of the entry (doesn't affect the live version)
             $draft = Craft::$app->getDrafts()->createDraft($entry);
 
-            // Set the AI-generated text on the target field and save the draft
+            // Carry the user's unsaved edits into the draft so nothing they typed is lost
+            foreach ($liveValues as $handle => $value) {
+                if ($handle === '__title') {
+                    $draft->title = $value;
+                    continue;
+                }
+                // Skip anything that isn't a real field on this entry (defensive)
+                if (!$draft->getFieldLayout()->getFieldByHandle($handle)) {
+                    continue;
+                }
+                $draft->setFieldValue($handle, $value);
+            }
+
+            // Now write the AI-generated text into the target field (overrides any live value for it)
             $draft->setFieldValue($fieldHandle, $generatedContent);
+
             Craft::$app->getElements()->saveElement($draft);
+
 
             // Return JSON response to the JS .then() callback
             return $this->asJson([

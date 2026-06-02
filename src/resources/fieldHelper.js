@@ -1,3 +1,41 @@
+// --- Position wand buttons (handles both initial load and AJAX-injected fields) ---
+function positionWandButton(btn) {
+    if (btn.dataset.positioned === '1') return;     // skip already-placed buttons
+    var field = btn.closest('.field');
+    if (!field) return;
+    var heading = field.querySelector('.heading .flex-grow');
+    if (!heading) return;                            // some fields have a different heading layout — skip
+    heading.before(btn);
+    btn.style.display = '';
+    btn.dataset.positioned = '1';
+}
+
+function positionAllWands(root) {
+    (root || document).querySelectorAll('.ai-wand-btn').forEach(positionWandButton);
+}
+
+// Position any wand buttons already in the DOM
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { positionAllWands(); });
+} else {
+    positionAllWands();
+}
+
+// Watch for new wand buttons added later (Matrix blocks, etc.)
+new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+        m.addedNodes.forEach(function(node) {
+            if (node.nodeType !== 1) return;                            // only Element nodes
+            if (node.matches && node.matches('.ai-wand-btn')) {
+                positionWandButton(node);
+            } else if (node.querySelectorAll) {
+                node.querySelectorAll('.ai-wand-btn').forEach(positionWandButton);
+            }
+        });
+    });
+}).observe(document.body, { childList: true, subtree: true });
+
+
 // Listen for all clicks on the page
 // We use event delegation: one listener on the whole document
 // instead of adding listeners to each button individually
@@ -131,9 +169,10 @@ document.addEventListener('click', function(event) {
             var selectedPrompt = item.dataset.prompt;
             var selectedProvider = item.dataset.provider;
             var selectedCreateDraft = item.dataset.createDraft;
-            var entryIdInput = document.querySelector('input[name="elementId"]');
-            var siteIdInput = document.querySelector('input[name="siteId"]');
-            
+            var wandForm = btn.closest('form');
+            var entryIdInput = wandForm.querySelector('input[name="elementId"], input[name$="[elementId]"]');
+            var siteIdInput  = wandForm.querySelector('input[name="siteId"], input[name$="[siteId]"]');
+
             document.querySelectorAll('.ai-wand-btn').forEach(function(b) { b.disabled = true; });
             
             menu.remove();
@@ -153,17 +192,17 @@ document.addEventListener('click', function(event) {
                 overlay.style.height = fieldRect.height + 'px';
                 document.body.appendChild(overlay);
             }
-
+            var liveValues = {};   
             // Grab whatever the user has currently typed (not yet saved to DB)
-            var liveValues = {};
-            document.querySelectorAll(
-                'input[name^="fields["], textarea[name^="fields["]'
+            wandForm.querySelectorAll(
+                'input[name*="[fields]["], textarea[name*="[fields]["], input[name^="fields["], textarea[name^="fields["]'
             ).forEach(function(el) {
-                var m = el.name.match(/^fields\[([^\]]+)\]$/);
+                // Catches both top-level `fields[handle]` and namespaced `xxxx[fields][handle]`
+                var m = el.name.match(/(?:^|[\[\]])fields\[([^\]]+)\]/);
                 if (m) liveValues[m[1]] = el.value;
             });
 
-            var titleInput = document.querySelector('input[name="title"]');
+            var titleInput = wandForm.querySelector('input[name="title"], input[name$="[title]"]');
             if (titleInput) liveValues.__title = titleInput.value;
 
             fetch(Craft.getActionUrl('craft-cp-ai/content/generate'), {
@@ -199,7 +238,7 @@ document.addEventListener('click', function(event) {
                     Craft.cp.displayNotice('Draft created!');
                     window.location.href = data.draftUrl;
                 } else {
-                    var fieldEl = document.querySelector('[name="fields[' + data.fieldHandle + ']"]');
+                    var fieldEl = wandForm.querySelector('[name="fields[' + data.fieldHandle + ']"], [name$="[fields][' + data.fieldHandle + ']"]');
 
                     // CKEditor stores its instance on a .ck-editor__editable descendant of the
                     // field container, not on the textarea. Search inside the field for one that
@@ -236,3 +275,4 @@ document.addEventListener('click', function(event) {
         });
     }
 });
+

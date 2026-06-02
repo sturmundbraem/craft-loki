@@ -4,6 +4,8 @@ namespace stubr\services\providers;
 
 use stubr\services\providers\LlmProviderInterface;
 use GuzzleHttp\Client;
+use craft\helpers\App;
+use stubr\Plugin;
 
 class DeepLProvider implements LlmProviderInterface
 {

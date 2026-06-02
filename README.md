@@ -45,6 +45,7 @@ Go to the "AI Prompts" section in the CP sidebar. Here you can:
 - Set which LLM provider each prompt uses (OpenAI, Claude, DeepL)
 - Check "All PlainText" or "All CKEditor" to make a prompt available on all fields of that type
 - Assign specific prompts to specific fields using the Field Prompt Assignments panel
+- Add a general Base Prompt, that tells the AI how to generate text: the tone, structure, etc for all other prompts.
 
 Each prompt has:
 - **Label** — short name shown in the dropdown (e.g. "Summarize")
