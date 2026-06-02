@@ -33,12 +33,9 @@ class PromptsController extends Controller{
         $settings = Plugin::$plugin->getSettings();
         $settings->prompts = $prompts;
 
-        $basePrompt = $request->getBodyParam('basePrompt', '');
-
         Craft::$app->getPlugins()->savePluginSettings(Plugin::$plugin, [
             'prompts' => $prompts,
             'fieldAssignments' => $fieldAssignments,
-            'basePrompt' => $basePrompt,
         ]);
 
         return $this->redirect('craft-cp-ai/prompts');

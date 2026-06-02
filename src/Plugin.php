@@ -58,6 +58,12 @@ class Plugin extends \craft\base\Plugin
         $item['url'] = 'craft-cp-ai/prompts';
         unset($item['icon']);
         $item['fontIcon'] = 'wand-magic-sparkles';
+
+        $item['subnav'] = [
+            'prompts' => ['label' => 'Prompts', 'url' => 'craft-cp-ai/prompts'],
+            'settings' => ['label' => 'Settings', 'url' => 'settings/plugins/craft-cp-ai'],
+        ]; 
+        
         return $item;
     }
 
