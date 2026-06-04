@@ -77,13 +77,14 @@ class ContentController extends \craft\web\Controller
             $effectiveValues[$handle] = $liveValues[$handle] ?? (string)$value;
         }
 
+        //list of twig variables for easier prompt writing
         $twigVars = [
             'siteLang' => $site->language,
             'fieldHandle' => $fieldHandle,
             'entryTitle' => $entryTitle,
             'fields' => $effectiveValues,
         ];
-
+        
         $prompt     = Craft::$app->getView()->renderString($prompt, $twigVars);
         $basePrompt = Craft::$app->getView()->renderString($basePrompt, $twigVars);
 
