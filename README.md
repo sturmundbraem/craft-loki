@@ -59,8 +59,9 @@ Prompts support the following Twig variables for dynamic content
 - `{{ siteLang }}` — the current site's language (e.g. "de", "en")
 - `{{ fieldHandle }}` — the field handle being edited
 - `{{ entryTitle }}` — the entry's title
+- `{{ fields.<fieldHandle> }}` - the specific field user would refer to for more exact prompts 
 
-Example: `Translate this text to {{ siteLang }}`
+Example: `Translate this text to {{ siteLang }}` or while editing the subtitle: `Summarise the following text in one sentence: "{{ fields.description }}`
 
 ### Using the Wand Button
 
