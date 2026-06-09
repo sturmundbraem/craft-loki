@@ -5,16 +5,42 @@ namespace stubr\controllers;
 use Craft;
 use craft\web\Controller;
 use stubr\Plugin;
+use craft\helpers\StringHelper;
 
 class PromptsController extends Controller{
 
-    public function actionIndex(){
-
+    public function actionIndex()
+    {
         $settings = Plugin::$plugin->getSettings();
         $prompts = $settings->prompts;
+        $fieldAssignments = $settings->fieldAssignments;
+
+        // 1) Ensure every prompt has a UID (in-memory backfill)
+        $indexToUid = [];
+        foreach ($prompts as $key => $prompt) {
+            if (empty($prompt['uid'])) {
+                $prompts[$key]['uid'] = StringHelper::UUID();
+            }
+            $indexToUid[(string)$key] = $prompts[$key]['uid'];
+        }
+
+        // 2) Migrate fieldAssignments from row-index → UID for any old-format entries
+        foreach ($fieldAssignments as $fieldHandle => $promptRefs) {
+            foreach ($promptRefs as $i => $ref) {
+                if (isset($indexToUid[(string)$ref])) {
+                    $fieldAssignments[$fieldHandle][$i] = $indexToUid[(string)$ref];
+                }
+            }
+        }
+
+        // 3) UID-keyed map for the JS (used by the assignments panel)
+        $promptsByUid = [];
+        foreach ($prompts as $prompt) {
+            $promptsByUid[$prompt['uid']] = $prompt;
+        }
+
         $allFields = Craft::$app->getFields()->getAllFields();
         $savedOrder = $settings->fieldOrder;
-
         if (!empty($savedOrder)) {
             $positions = array_flip($savedOrder);
             usort($allFields, function ($a, $b) use ($positions) {
@@ -24,15 +50,15 @@ class PromptsController extends Controller{
             });
         }
 
-        $fieldAssignments = $settings->fieldAssignments;
-
         return $this->renderTemplate('craft-cp-ai/index', [
             'prompts' => $prompts,
+            'promptsByUid' => $promptsByUid,
             'allFields' => $allFields,
             'fieldAssignments' => $fieldAssignments,
             'settings' => $settings,
         ]);
     }
+
 
     public function actionSave(){
         $this->requirePostRequest();
@@ -48,9 +74,9 @@ class PromptsController extends Controller{
         $ckEditorKeys = $buckets['allCKEditor']  ?? [];
 
         foreach ($prompts as $key => $prompt) {
-            $key = (string)$key;
-            $prompts[$key]['allPlainText'] = in_array($key, $plainTextKeys, true) ? '1' : '';
-            $prompts[$key]['allCKEditor'] = in_array($key, $ckEditorKeys,  true) ? '1' : '';
+            $uid = $prompt['uid'] ?? '';
+            $prompts[$key]['allPlainText'] = $uid && in_array($uid, $plainTextKeys, true) ? '1' : '';
+            $prompts[$key]['allCKEditor']  = $uid && in_array($uid, $ckEditorKeys,  true) ? '1' : '';
         }
 
         $settings = Plugin::$plugin->getSettings();

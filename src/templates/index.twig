@@ -15,6 +15,11 @@
             id: 'prompts',
             name: 'prompts',
             cols: {
+                uid: {
+                    heading: '',
+                    type: 'singleline',
+                    class: 'uid-col',
+                },
                 text: {
                     heading: 'PROMPT',
                     type: 'multiline',
@@ -86,9 +91,20 @@
     </form>
 
     <script>
-        var allPrompts = {{ prompts|json_encode|raw }};
-        var fieldAssignments = {{ fieldAssignments|json_encode|raw }};
+        function readLivePrompts() {
+            var list = [];
+            document.querySelectorAll('#prompts > tbody > tr').forEach(function(tr) {
+                var uidInput = tr.querySelector('.uid-col textarea');
+                var labelInput = tr.querySelector('textarea[name$="[label]"]');
+                if (uidInput && uidInput.value && labelInput) {
+                    list.push({ uid: uidInput.value, label: labelInput.value });
+                }
+            });
+            return list;
+        }
 
+        var allPrompts = {{ promptsByUid|json_encode|raw }};
+        var fieldAssignments = {{ fieldAssignments|json_encode|raw }};
 
         document.querySelectorAll('.field-select-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
@@ -136,10 +152,10 @@
             // Decide what to read (initial state) and what to write (input name)
             var isChecked, inputName;
             if (handle === '__allPlainText') {
-                isChecked = function(key) { return allPrompts[key].allPlainText === '1'; };
+                isChecked = function(key) { return allPrompts[key] && allPrompts[key].allPlainText === '1'; };
                 inputName = 'bucketAssignments[allPlainText][]';
             } else if (handle === '__allCKEditor') {
-                isChecked = function(key) { return allPrompts[key].allCKEditor === '1'; };
+                isChecked = function(key) { return allPrompts[key] && allPrompts[key].allCKEditor === '1'; };
                 inputName = 'bucketAssignments[allCKEditor][]';
             } else {
                 var assigned = fieldAssignments[handle] || [];
@@ -148,13 +164,13 @@
             }
 
             var html = '';
-            for (var key in allPrompts) {
-                var checked = isChecked(key) ? 'checked' : '';
+            readLivePrompts().forEach(function(prompt) {
+                var checked = isChecked(prompt.uid) ? 'checked' : '';
                 html += '<label style="display:block; margin-bottom:8px;">'
-                    + '<input type="checkbox" name="' + inputName + '" value="' + key + '" ' + checked + '> '
-                    + allPrompts[key].label
+                    + '<input type="checkbox" name="' + inputName + '" value="' + prompt.uid + '" ' + checked + '> '
+                    + (prompt.label || '(unnamed)')
                     + '</label>';
-            }
+            });
             container.innerHTML = html;
         });
     });
@@ -177,6 +193,18 @@
             axis: Garnish.Y_AXIS,
         });
 
+        new MutationObserver(function(mutations) {
+            mutations.forEach(function(m) {
+                m.addedNodes.forEach(function(node) {
+                    if (node.nodeType !== 1 || node.tagName !== 'TR') return;
+                    var uidInput = node.querySelector('.uid-col textarea, .uid-col input');
+                    if (uidInput && !uidInput.value) {
+                        uidInput.value = Craft.uuid();
+                    }
+                });
+            });
+        }).observe(document.querySelector('#prompts tbody'), { childList: true });
+
         document.getElementById('prompts-form').addEventListener('submit', serializeFieldOrder);
     {% endjs %}
 
@@ -185,6 +213,7 @@
         background-color: var(--gray-200);
         font-weight: bold;
     }
+    .uid-col { display: none; }
     </style>
 
 {% endblock %}
