@@ -117,17 +117,39 @@ document.addEventListener('click', function(event) {
 
         for (var promptKey in prompts) {
             var menuItem = document.createElement('button');
-            menuItem.type = 'button';              // Prevents form submission
+            menuItem.type = 'button';
+            menuItem.style.display = 'flex';
+            menuItem.style.justifyContent = 'space-between';
+            menuItem.style.alignItems = 'center';
+            menuItem.style.width = '100%';
+
+
             var labelText = prompts[promptKey].label;
             if (prompts[promptKey].createDraft === '1') {
                 labelText = labelText + ' (Draft)';
             }
-            menuItem.textContent = labelText;
+            var labelSpan = document.createElement('span');
+            labelSpan.textContent = labelText;
+            menuItem.appendChild(labelSpan);
+
+            var provider = prompts[promptKey].provider;
+            if (provider) {
+                var icon = document.createElement('img');
+                icon.src = aiIconBase + '/' + provider + '.svg';
+                icon.alt = provider;
+                icon.style.width = '16px';
+                icon.style.height = '16px';
+                icon.style.verticalAlign = 'middle';
+                icon.style.marginLeft = '6px';
+                menuItem.appendChild(icon);
+            }
+
             menuItem.dataset.prompt = prompts[promptKey].text;
             menuItem.dataset.provider = prompts[promptKey].provider;
             menuItem.dataset.createDraft = prompts[promptKey].createDraft;
             list.appendChild(menuItem);
         }
+
         menu.appendChild(list);
         // Position the dropdown menu right below the wand button
         // getBoundingClientRect() returns the button's position on screen

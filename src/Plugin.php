@@ -97,7 +97,12 @@ class Plugin extends \craft\base\Plugin
             if ($event->sender instanceof \craft\fields\PlainText || $event->sender instanceof \craft\ckeditor\Field) {
 
                 // Load our JS and CSS files (fieldHelper.js, styles.css)
-                Craft::$app->getView()->registerAssetBundle(FieldHelperAsset::class);
+                $view = Craft::$app->getView();
+                $bundle = FieldHelperAsset::register($view);
+                $view->registerJs(
+                    'var aiIconBase = ' . json_encode($bundle->baseUrl . '/icons') . ';',
+                    \yii\web\View::POS_HEAD
+                );
 
                 // Load the prompts config and inject it as a JS variable
                 // This makes the prompts available in the browser as window.aiPrompts
