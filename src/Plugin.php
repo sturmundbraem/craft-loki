@@ -107,7 +107,14 @@ class Plugin extends \craft\base\Plugin
                 // Load the prompts config and inject it as a JS variable
                 // This makes the prompts available in the browser as window.aiPrompts
                 $prompts = self::$plugin->getSettings()->prompts;
-                Craft::$app->getView()->registerJs('var aiPrompts = ' . json_encode($prompts) . ';', \yii\web\View::POS_HEAD);
+                $promptsByUid = [];
+                foreach ($prompts as $prompt) {
+                    if (!empty($prompt['uid'])) {
+                        $promptsByUid[$prompt['uid']] = $prompt;
+                    }
+                }
+                Craft::$app->getView()->registerJs('var aiPrompts = ' . json_encode($promptsByUid) . ';', \yii\web\View::POS_HEAD);
+
                 $fieldAssignments = self::$plugin->getSettings()->fieldAssignments;
                 Craft::$app->getView()->registerJs('var aiFieldAssignments = ' . json_encode($fieldAssignments) . ';', \yii\web\View::POS_HEAD);
 
@@ -119,11 +126,45 @@ class Plugin extends \craft\base\Plugin
                     $fieldType = 'CKEditor';
                 }
 
+                $matrixHandle = null;
+                $element = $event->element ?? null;
+                if ($element instanceof \craft\elements\Entry && $element->ownerId && $element->fieldId) {
+                    $matrixField = Craft::$app->getFields()->getFieldById($element->fieldId);
+                    if ($matrixField) {
+                        $matrixHandle = $matrixField->handle;
+                    }
+                }
+
+                $assignedSelf = $fieldAssignments[$fieldHandle] ?? [];
+                $assignedMatrix = $matrixHandle ? ($fieldAssignments[$matrixHandle] ?? []) : [];
+                $assignedAll = array_merge($assignedSelf, $assignedMatrix);
+
+                $hasPrompts = false;
+                if (!empty($assignedAll)) {
+                    $existingUids = array_column($prompts, 'uid');
+                    foreach ($assignedAll as $uid) {
+                        if (in_array($uid, $existingUids, true)) {
+                            $hasPrompts = true;
+                            break;
+                        }
+                    }
+                }
+                if (!$hasPrompts) {
+                    foreach ($prompts as $prompt) {
+                        $flag = $fieldType === 'PlainText' ? 'allPlainText' : 'allCKEditor';
+                        if (($prompt[$flag] ?? '') === '1') {
+                            $hasPrompts = true;
+                            break;
+                        }
+                    }
+                }
+                if (!$hasPrompts) {
+                    return;
+                }
+
                 // Append a wand button to the field's HTML
-                // data-field: tells JS which field this button belongs to
-                // data-type: tells JS the field type (for picking the right prompts)
-                // style="display:none": hidden initially, the inline script moves it to the right place
-                $event->html .= '<button type="button" class="ai-wand-btn btn small icon" data-icon="wand-magic-sparkles" data-field="' . $fieldHandle . '" data-type="' . $fieldType . '" style="display:none"></button>';
+                $matrixAttr = $matrixHandle ? ' data-matrix-field="' . $matrixHandle . '"' : '';
+                $event->html .= '<button type="button" class="ai-wand-btn btn small icon" data-icon="wand-magic-sparkles" data-field="' . $fieldHandle . '" data-type="' . $fieldType . '"' . $matrixAttr . ' style="display:none"></button>';
                 }
             }
         );

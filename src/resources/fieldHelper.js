@@ -62,17 +62,19 @@ document.addEventListener('click', function(event) {
         }
 
         var prompts = {};
-        // First check if this specific field has assigned prompts
-        if (aiFieldAssignments[buttonField] && aiFieldAssignments[buttonField].length > 0) {
-            var assigned = aiFieldAssignments[buttonField];
-            for (var i = 0; i < assigned.length; i++) {
-                var key = assigned[i];
-                if (aiPrompts[key]) {
-                    prompts[key] = aiPrompts[key];
+        var matrixField = btn.dataset.matrixField;   // undefined on non-Matrix fields
+
+        var assignedSelf = aiFieldAssignments[buttonField] || [];
+        var assignedMatrix = matrixField ? (aiFieldAssignments[matrixField] || []) : [];
+        var assignedAll = assignedSelf.concat(assignedMatrix);
+
+        if (assignedAll.length > 0) {
+            assignedAll.forEach(function(uid) {
+                if (aiPrompts[uid]) {
+                    prompts[uid] = aiPrompts[uid];   // dedups by uid since same uid = same key
                 }
-            }
+            });
         } else {
-            // Fallback: show prompts based on field type (allPlainText / allCKEditor)
             for (var key in aiPrompts) {
                 var p = aiPrompts[key];
                 if (buttonType === 'PlainText' && p.allPlainText === '1') {
@@ -83,8 +85,6 @@ document.addEventListener('click', function(event) {
                 }
             }
         }
-
-
 
         // Create the dropdown menu container
         var menu = document.createElement('div');
