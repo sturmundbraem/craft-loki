@@ -50,7 +50,7 @@ class PromptsController extends Controller{
             });
         }
 
-        return $this->renderTemplate('craft-cp-ai/index', [
+        return $this->renderTemplate('loki/index', [
             'prompts' => $prompts,
             'promptsByUid' => $promptsByUid,
             'allFields' => $allFields,
@@ -88,6 +88,6 @@ class PromptsController extends Controller{
             'fieldOrder' => $fieldOrder,
         ]);
 
-        return $this->redirect('craft-cp-ai/prompts');
+        return $this->redirect('loki/prompts');
     }
 }

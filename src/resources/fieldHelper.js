@@ -255,7 +255,7 @@ document.addEventListener('click', function(event) {
             }
             if (titleInput) liveValues.__title = titleInput.value;
 
-            fetch(Craft.getActionUrl('craft-cp-ai/content/generate'), {
+            fetch(Craft.getActionUrl('loki/content/generate'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -321,4 +321,3 @@ document.addEventListener('click', function(event) {
         });
     }
 });
-

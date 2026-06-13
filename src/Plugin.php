@@ -43,7 +43,7 @@ class Plugin extends \craft\base\Plugin
         
         // Render the Twig template and pass it the settings + fields data
         return \Craft::$app->getView()->renderTemplate(
-            'craft-cp-ai/settings.twig',
+            'loki/settings.twig',
             [
                 'settings' => $this->getSettings(),
             ]
@@ -55,13 +55,13 @@ class Plugin extends \craft\base\Plugin
     {
         $item = parent::getCpNavItem();
         $item['label'] = 'AI Prompts';
-        $item['url'] = 'craft-cp-ai/prompts';
+        $item['url'] = 'loki/prompts';
         unset($item['icon']);
         $item['fontIcon'] = 'wand-magic-sparkles';
 
         $item['subnav'] = [
-            'prompts' => ['label' => 'Prompts', 'url' => 'craft-cp-ai/prompts'],
-            'settings' => ['label' => 'Settings', 'url' => 'settings/plugins/craft-cp-ai'],
+            'prompts' => ['label' => 'Prompts', 'url' => 'loki/prompts'],
+            'settings' => ['label' => 'Settings', 'url' => 'settings/plugins/loki'],
         ]; 
         
         return $item;
@@ -76,7 +76,7 @@ class Plugin extends \craft\base\Plugin
             \craft\web\UrlManager::class,
             \craft\web\UrlManager::EVENT_REGISTER_CP_URL_RULES,
             function (\craft\events\RegisterUrlRulesEvent $event) {
-                $event->rules['craft-cp-ai/prompts'] = 'craft-cp-ai/prompts/index';
+                $event->rules['loki/prompts'] = 'loki/prompts/index';
             }
         );
 

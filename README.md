@@ -1,9 +1,9 @@
-# Craft AI Automatisations
+# Loki
 
 This plugin adds AI text generation to Craft CMS 5 Control Panel field editing. It supports multiple LLM providers (OpenAI, Claude, DeepL).
 
-Important: The plugin handle is "craft-cp-ai"
-This handle is needed for cli tasks e.g. migrations `ddev exec php craft migrate/up --plugin=craft-cp-ai`
+Important: The plugin handle is "loki"
+This handle is needed for cli tasks e.g. migrations `ddev exec php craft migrate/up --plugin=loki`
 
 ## Installation
 
@@ -18,13 +18,13 @@ Add the repository to your composer.json
 "repositories":[
     {
         "type": "vcs",
-        "url" : "git@github.com:sturmundbraem/craft-cp-ai.git",
+        "url" : "git@github.com:sturmundbraem/loki.git",
         "no-api": true
     }
 ]
 ```
 
-Run `ddev composer require stubr/craft-cp-ai`
+Run `ddev composer require stubr/loki`
 
 Open the panel `ddev launch panel`, go to Settings -> Plugins and Install the Plugin.
 
@@ -32,7 +32,7 @@ Open the panel `ddev launch panel`, go to Settings -> Plugins and Install the Pl
 
 API keys can be set in two ways:
 
-1. Plugin Settings page (Settings → Plugins → Craft CP AI) — paste keys directly into the form, or reference an environment variable by typing $OPENAI_API_KEY (the field will autosuggest available env vars from your .env).
+1. Plugin Settings page (Settings → Plugins → Loki) — paste keys directly into the form, or reference an environment variable by typing $OPENAI_API_KEY (the field will autosuggest available env vars from your .env).
 2. .env file — set OPENAI_API_KEY=sk-..., CLAUDE_API_KEY=sk-ant-..., DEEPL_API_KEY=... and reference them as $OPENAI_API_KEY etc. in the Settings page.
 
 ## Usage
@@ -85,4 +85,4 @@ Fields without specific assignments will fall back to prompts marked as "All Pla
 
 ## Updating
 
-To update to the newest version of this package use `ddev c update stubr/craft-cp-ai`
+To update to the newest version of this package use `ddev c update stubr/loki`

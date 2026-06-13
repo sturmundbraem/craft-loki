@@ -11,7 +11,7 @@ use stubr\Plugin;
 class ContentController extends \craft\web\Controller
 {
     // This method handles POST requests from fieldHelper.js
-    // URL: craft-cp-ai/content/generate
+    // URL: loki/content/generate
     public function actionGenerate()
     {
         // Read the POST data sent by the JS fetch request
