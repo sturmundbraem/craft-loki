@@ -1,6 +1,6 @@
 # Loki
 
-This plugin adds AI text generation to Craft CMS 5 Control Panel field editing. It supports multiple LLM providers (OpenAI, Claude, DeepL).
+Your lowkey ai trickster for the Craft CMS 5 Control Panel. Adds AI text generation to field editing, and supports multiple LLM providers (OpenAI, Anthropic, DeepL)..
 
 Important: The plugin handle is "loki"
 This handle is needed for cli tasks e.g. migrations `ddev exec php craft migrate/up --plugin=loki`
