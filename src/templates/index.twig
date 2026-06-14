@@ -23,11 +23,9 @@
                 for example <code>DE</code>, <code>FR</code>, <code>IT</code>, or <code>EN-GB</code>.
             </p>
             <p>
-                Prompt values support Twig before they are sent. Available variables: <code>{{ "{{ siteLang }}" }}</code>,
-                <code>{{ "{{ fieldHandle }}" }}</code>, <code>{{ "{{ entryTitle }}" }}</code>, and
-                <code>{{ "{{ fields.myFieldHandle }}" }}</code>. For DeepL, the rendered result must be a valid
-                <code>target_lang</code> code, for example <code>{{ "{{ siteLang|upper }}" }}</code> if your site
-                languages match DeepL's codes.
+                Examples: <code>Translate detected language to German: DE</code>,
+                <code>Translate detected language to German (DE-CH): DE</code>,
+                <code>Translate detected language to {{ "{{ siteLang }}" }}: {{ "{{ siteLang|split('-')|first|upper }}" }}</code>.
             </p>
         </div>
         {{ forms.editableTable({
