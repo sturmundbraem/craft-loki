@@ -61,8 +61,19 @@
 .ai-prompt-menu-list {
     display: flex;
     flex-direction: column;
-    max-height: 140px;       /* scroll past this height */
+    max-height: 200px;
     overflow-y: auto;
-    gap: 4px;
+    gap: 10px;
     padding: 13px;
 }
+
+.ai-prompt-menu-list > button {
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--hairline-color);
+}
+
+.ai-prompt-menu-list > button:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
