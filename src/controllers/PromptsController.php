@@ -74,6 +74,8 @@ class PromptsController extends Controller{
         $fieldOrder = $fieldOrderJson ? (json_decode($fieldOrderJson, true) ?: []) : [];
         $buckets = $request->getBodyParam('bucketAssignments', []);
         $touchedBuckets = $request->getBodyParam('bucketAssignmentsTouched', []);
+        $prompts = is_array($prompts) ? $prompts : [];
+        $fieldAssignments = is_array($fieldAssignments) ? $fieldAssignments : [];
         $postedFieldAssignments = is_array($postedFieldAssignments) ? $postedFieldAssignments : [];
         $buckets = is_array($buckets) ? $buckets : [];
 
@@ -95,7 +97,8 @@ class PromptsController extends Controller{
         $plainTextKeys = $asArray($buckets['allPlainText'] ?? []);
         $ckEditorKeys = $asArray($buckets['allCKEditor'] ?? []);
         $existingPromptsByUid = [];
-        foreach ($settings->prompts as $existingPrompt) {
+        $existingPrompts = is_array($settings->prompts) ? $settings->prompts : [];
+        foreach ($existingPrompts as $existingPrompt) {
             if (!empty($existingPrompt['uid'])) {
                 $existingPromptsByUid[$existingPrompt['uid']] = $existingPrompt;
             }
