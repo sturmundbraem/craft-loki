@@ -3,6 +3,12 @@
 {% set title = "AI Prompts" %}
 {% set readOnly = readOnly ?? not craft.app.config.general.allowAdminChanges %}
 
+{% block contentNotice %}
+    {% if readOnly %}
+        {{ craft.cp.readOnlyNoticeHtml()|raw }}
+    {% endif %}
+{% endblock %}
+
 {% block actionButton %}
     {% if not readOnly %}
         <button type="submit" class="btn submit" form="prompts-form">Save prompt settings</button>
@@ -21,11 +27,6 @@
                 and
                 <a href="https://developers.deepl.com/docs/getting-started/supported-languages" target="_blank" rel="noopener">supported languages list</a>,
                 for example <code>DE</code>, <code>FR</code>, <code>IT</code>, or <code>EN-GB</code>.
-            </p>
-            <p>
-                Examples: <code>Translate detected language to German: DE</code>,
-                <code>Translate detected language to German (DE-CH): DE</code>,
-                <code>Translate detected language to {{ "{{ siteLang }}" }}: {{ "{{ siteLang|split('-')|first|upper }}" }}</code>.
             </p>
         </div>
         {{ forms.editableTable({
@@ -131,6 +132,53 @@
         var fieldAssignments = {{ fieldAssignments|json_encode|raw }};
         var readOnly = {{ readOnly ? 'true' : 'false' }};
 
+        function assignmentInputName(handle) {
+            if (handle === '__allPlainText') {
+                return 'bucketAssignments[allPlainText][]';
+            }
+            if (handle === '__allCKEditor') {
+                return 'bucketAssignments[allCKEditor][]';
+            }
+            return 'fieldAssignments[' + handle + '][]';
+        }
+
+        function markAssignmentTouched(hiddenContainer, handle) {
+            var marker = document.createElement('input');
+            marker.type = 'hidden';
+            marker.name = handle === '__allPlainText' || handle === '__allCKEditor'
+                ? 'bucketAssignmentsTouched[]'
+                : 'fieldAssignmentsTouched[]';
+            marker.value = handle === '__allPlainText'
+                ? 'allPlainText'
+                : (handle === '__allCKEditor' ? 'allCKEditor' : handle);
+            marker.dataset.field = handle;
+            hiddenContainer.appendChild(marker);
+        }
+
+        function persistCurrentAssignments(copyChecked) {
+            var container = document.getElementById('prompt-checkboxes');
+            var hiddenContainer = document.getElementById('hidden-assignments');
+            var currentField = container.dataset.currentField;
+            if (readOnly || !currentField) return;
+
+            var oldHidden = hiddenContainer.querySelectorAll('input[data-field="' + currentField + '"]');
+            oldHidden.forEach(function(el) { el.remove(); });
+            markAssignmentTouched(hiddenContainer, currentField);
+
+            if (!copyChecked) return;
+
+            var inputName = assignmentInputName(currentField);
+            var currentChecked = container.querySelectorAll('input[type="checkbox"]:checked');
+            currentChecked.forEach(function(cb) {
+                var hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = inputName;
+                hidden.value = cb.value;
+                hidden.dataset.field = currentField;
+                hiddenContainer.appendChild(hidden);
+            });
+        }
+
         document.querySelectorAll('.field-select-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
             document.querySelectorAll('.field-select-btn').forEach(function(b) { b.classList.remove('is-selected'); });
@@ -139,33 +187,7 @@
             var handle = btn.dataset.handle;
             var container = document.getElementById('prompt-checkboxes');
             var hiddenContainer = document.getElementById('hidden-assignments');
-            
-            // Save current checkboxes as hidden inputs before switching
-            var currentChecked = container.querySelectorAll('input[type="checkbox"]:checked');
-            var currentField = container.dataset.currentField;
-            if (!readOnly && currentField) {
-                var oldHidden = hiddenContainer.querySelectorAll('input[data-field="' + currentField + '"]');
-                oldHidden.forEach(function(el) { el.remove(); });
-
-                // Pick the POST name based on what's currently shown
-                var inputName;
-                if (currentField === '__allPlainText') {
-                    inputName = 'bucketAssignments[allPlainText][]';
-                } else if (currentField === '__allCKEditor') {
-                    inputName = 'bucketAssignments[allCKEditor][]';
-                } else {
-                    inputName = 'fieldAssignments[' + currentField + '][]';
-                }
-
-                currentChecked.forEach(function(cb) {
-                    var hidden = document.createElement('input');
-                    hidden.type = 'hidden';
-                    hidden.name = inputName;
-                    hidden.value = cb.value;
-                    hidden.dataset.field = currentField;
-                    hiddenContainer.appendChild(hidden);
-                });
-            }
+            persistCurrentAssignments(true);
 
             // Track which field is currently shown
             container.dataset.currentField = handle;
@@ -178,15 +200,13 @@
             var isChecked, inputName;
             if (handle === '__allPlainText') {
                 isChecked = function(key) { return allPrompts[key] && allPrompts[key].allPlainText === '1'; };
-                inputName = 'bucketAssignments[allPlainText][]';
             } else if (handle === '__allCKEditor') {
                 isChecked = function(key) { return allPrompts[key] && allPrompts[key].allCKEditor === '1'; };
-                inputName = 'bucketAssignments[allCKEditor][]';
             } else {
                 var assigned = fieldAssignments[handle] || [];
                 isChecked = function(key) { return assigned.indexOf(key) !== -1; };
-                inputName = 'fieldAssignments[' + handle + '][]';
             }
+            inputName = assignmentInputName(handle);
 
             var html = '';
             readLivePrompts().forEach(function(prompt) {
@@ -214,6 +234,23 @@
 
         serializeFieldOrder();   // pre-populate so a save without dragging still works
 
+        function updatePromptPlaceholder(row) {
+            if (!row) return;
+            var providerSelect = row.querySelector('select[name$="[provider]"]');
+            var promptInput = row.querySelector('textarea[name$="[text]"]');
+            if (!providerSelect || !promptInput) return;
+
+            promptInput.placeholder = providerSelect.value === 'deepl' ? 'DeepL: only add target_lang' : '';
+        }
+
+        document.querySelectorAll('#prompts tbody tr').forEach(updatePromptPlaceholder);
+
+        document.getElementById('prompts').addEventListener('change', function(event) {
+            if (event.target.matches('select[name$="[provider]"]')) {
+                updatePromptPlaceholder(event.target.closest('tr'));
+            }
+        });
+
         if (!readOnly) {
             new Garnish.DragSort($('.field-list-item'), {
                 handle: '.move',
@@ -228,12 +265,16 @@
                         if (uidInput && !uidInput.value) {
                             uidInput.value = Craft.uuid();
                         }
+                        updatePromptPlaceholder(node);
                     });
                 });
             }).observe(document.querySelector('#prompts tbody'), { childList: true });
         }
 
-        document.getElementById('prompts-form').addEventListener('submit', serializeFieldOrder);
+        document.getElementById('prompts-form').addEventListener('submit', function() {
+            serializeFieldOrder();
+            persistCurrentAssignments(false);
+        });
     {% endjs %}
 
     <style>

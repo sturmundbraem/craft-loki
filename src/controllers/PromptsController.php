@@ -65,22 +65,56 @@ class PromptsController extends Controller{
         $this->requireAdmin();
 
         $request = Craft::$app->getRequest();
+        $settings = Plugin::$plugin->getSettings();
         $prompts = $request->getBodyParam('prompts', []);
-        $fieldAssignments = $request->getBodyParam('fieldAssignments', []);
+        $fieldAssignments = $settings->fieldAssignments;
+        $postedFieldAssignments = $request->getBodyParam('fieldAssignments', []);
+        $touchedFields = $request->getBodyParam('fieldAssignmentsTouched', []);
         $fieldOrderJson = $request->getBodyParam('fieldOrder', '');
         $fieldOrder = $fieldOrderJson ? (json_decode($fieldOrderJson, true) ?: []) : [];
         $buckets = $request->getBodyParam('bucketAssignments', []);
+        $touchedBuckets = $request->getBodyParam('bucketAssignmentsTouched', []);
+        $prompts = is_array($prompts) ? $prompts : [];
+        $fieldAssignments = is_array($fieldAssignments) ? $fieldAssignments : [];
+        $postedFieldAssignments = is_array($postedFieldAssignments) ? $postedFieldAssignments : [];
+        $buckets = is_array($buckets) ? $buckets : [];
 
-        $plainTextKeys = $buckets['allPlainText'] ?? [];
-        $ckEditorKeys = $buckets['allCKEditor']  ?? [];
+        $asArray = function ($value): array {
+            if (!is_array($value)) {
+                $value = $value !== null && $value !== '' ? [$value] : [];
+            }
+
+            return array_values(array_filter($value, fn($item) => $item !== null && $item !== ''));
+        };
+
+        foreach ($asArray($touchedFields) as $fieldHandle) {
+            $fieldAssignments[$fieldHandle] = $asArray($postedFieldAssignments[$fieldHandle] ?? []);
+        }
+
+        $touchedBuckets = $asArray($touchedBuckets);
+        $plainTextTouched = in_array('allPlainText', $touchedBuckets, true);
+        $ckEditorTouched = in_array('allCKEditor', $touchedBuckets, true);
+        $plainTextKeys = $asArray($buckets['allPlainText'] ?? []);
+        $ckEditorKeys = $asArray($buckets['allCKEditor'] ?? []);
+        $existingPromptsByUid = [];
+        $existingPrompts = is_array($settings->prompts) ? $settings->prompts : [];
+        foreach ($existingPrompts as $existingPrompt) {
+            if (!empty($existingPrompt['uid'])) {
+                $existingPromptsByUid[$existingPrompt['uid']] = $existingPrompt;
+            }
+        }
 
         foreach ($prompts as $key => $prompt) {
             $uid = $prompt['uid'] ?? '';
-            $prompts[$key]['allPlainText'] = $uid && in_array($uid, $plainTextKeys, true) ? '1' : '';
-            $prompts[$key]['allCKEditor']  = $uid && in_array($uid, $ckEditorKeys,  true) ? '1' : '';
+            $existingPrompt = $uid ? ($existingPromptsByUid[$uid] ?? []) : [];
+            $prompts[$key]['allPlainText'] = $plainTextTouched
+                ? ($uid && in_array($uid, $plainTextKeys, true) ? '1' : '')
+                : ($existingPrompt['allPlainText'] ?? '');
+            $prompts[$key]['allCKEditor'] = $ckEditorTouched
+                ? ($uid && in_array($uid, $ckEditorKeys, true) ? '1' : '')
+                : ($existingPrompt['allCKEditor'] ?? '');
         }
 
-        $settings = Plugin::$plugin->getSettings();
         $settings->prompts = $prompts;
 
         Craft::$app->getPlugins()->savePluginSettings(Plugin::$plugin, [
