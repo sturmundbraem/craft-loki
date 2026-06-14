@@ -3,6 +3,12 @@
 {% set title = "AI Prompts" %}
 {% set readOnly = readOnly ?? not craft.app.config.general.allowAdminChanges %}
 
+{% block contentNotice %}
+    {% if readOnly %}
+        {{ craft.cp.readOnlyNoticeHtml()|raw }}
+    {% endif %}
+{% endblock %}
+
 {% block actionButton %}
     {% if not readOnly %}
         <button type="submit" class="btn submit" form="prompts-form">Save prompt settings</button>
