@@ -11,6 +11,24 @@
         {{ csrfInput() }}
         {{ actionInput('craft-loki/prompts/save') }}
         <h2>Define your custom AI prompts</h2>
+        <div class="readable">
+            <blockquote class="note">
+                <p>
+                    DeepL prompts are sent as the API <code>target_lang</code> value. Use the exact syntax from
+                    <a href="https://developers.deepl.com/api-reference/translate#request-body-descriptions" target="_blank" rel="noopener">DeepL's Translate API docs</a>
+                    and
+                    <a href="https://developers.deepl.com/docs/getting-started/supported-languages" target="_blank" rel="noopener">supported languages list</a>,
+                    for example <code>DE</code>, <code>FR</code>, <code>IT</code>, or <code>EN-GB</code>.
+                </p>
+                <p>
+                    Prompt values support Twig before they are sent. Available variables: <code>{{ "{{ siteLang }}" }}</code>,
+                    <code>{{ "{{ fieldHandle }}" }}</code>, <code>{{ "{{ entryTitle }}" }}</code>, and
+                    <code>{{ "{{ fields.myFieldHandle }}" }}</code>. For DeepL, the rendered result must be a valid
+                    <code>target_lang</code> code, for example <code>{{ "{{ siteLang|upper }}" }}</code> if your site
+                    languages match DeepL's codes.
+                </p>
+            </blockquote>
+        </div>
         {{ forms.editableTable({
             id: 'prompts',
             name: 'prompts',
