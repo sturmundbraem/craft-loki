@@ -112,6 +112,7 @@ document.addEventListener('click', function(event) {
         // This makes the wand button work as a toggle (click to open, click to close)
         var existingMenu = document.querySelector('.ai-prompt-menu');
         if (existingMenu) {
+            existingMenu.dispatchEvent(new CustomEvent('ai:close'));
             existingMenu.remove();
             return;
         }
@@ -157,11 +158,28 @@ document.addEventListener('click', function(event) {
         closeBtn.type = 'button';
         closeBtn.className = 'ai-prompt-menu-close';
         closeBtn.textContent = 'x';
-        closeBtn.addEventListener('click', function() {
+        function closeMenu() {
             menu.remove();
-        })
+            document.removeEventListener('click', closeOnOutsideClick);
+        }
+        function closeOnOutsideClick(e) {
+            if (e.target.closest('.ai-prompt-menu') || e.target.closest('.ai-wand-btn')) return;
+            closeMenu();
+        }
+        setTimeout(function() {
+            document.addEventListener('click', closeOnOutsideClick);
+        }, 0);
+
+        closeBtn.addEventListener('click', closeMenu);
         header.appendChild(closeBtn);
-        menu.appendChild(header);
+
+        closeBtn.addEventListener('click', closeMenu);
+        header.appendChild(closeBtn);
+        menu.appendChild(header);  
+                
+        menu.addEventListener('ai:close', function() {
+        document.removeEventListener('click', closeOnOutsideClick);
+    });
 
         // Loop through each prompt and create a menu button for it
         // key = the label shown to the user (e.g. "summarize")
