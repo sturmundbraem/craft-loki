@@ -50,25 +50,21 @@ class ContentController extends \craft\web\Controller
             return $this->asJson(['error' => 'Invalid provider'], 400);
         }
 
-        // Look up the entry from the database using Craft's query builder
-        // ->siteId() ensures we get the correct language version
-        // ->status(null) finds the entry even if it's disabled or a draft
-        // ->one() executes the query and returns a single entry object
-        $entry = Entry::find()
-            ->siteId($siteId)
-            ->id($entryId)
-            ->status(null)
-            ->one();
+        // Load the element by ID for the requested site. getElementById() returns
+        // any element type (Entry, Asset, etc.) — needed because native attributes
+        // like "alt" live on Assets, not just Entries.
+        $entry = Craft::$app->getElements()->getElementById($entryId, null, $siteId);
 
-        
+
         if (!$entry) {
-            return $this->asJson(['error' => 'Entry not found'], 404);
+            return $this->asJson(['error' => 'Element not found'], 404);
         }
 
         // $this->requirePermission('edit-entries:' . $entry->section->uid);
 
-        $isTitleField = $fieldHandle === 'title';
-        if (!$isTitleField && !$entry->getFieldLayout()->getFieldByHandle($fieldHandle)) {
+        // Native (non-custom-field) attributes handled directly, e.g. title, alt
+        $isNativeAttr = in_array($fieldHandle, ['title', 'alt'], true);
+        if (!$isNativeAttr && !$entry->getFieldLayout()->getFieldByHandle($fieldHandle)) {
             return $this->asJson(['error' => 'Invalid field'], 400);
         }
 
@@ -111,7 +107,9 @@ class ContentController extends \craft\web\Controller
         } catch (\Exception $e) {
             return $this->asJson(['error' => $e->getMessage()]);
         }
-        if ($createDraft === '1') {
+        // The draft flow is Entry-specific (owner chain, Matrix, elements_owners).
+        // Non-entry elements (e.g. Assets editing "alt") always take direct-fill.
+        if ($createDraft === '1' && $entry instanceof Entry) {
             // Walk up to the root entry (handles Matrix-nested fields).
             // For top-level fields, $rootEntry will equal $entry.
             $rootEntry = $entry;

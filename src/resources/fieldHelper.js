@@ -42,11 +42,11 @@ function hasAllPlainTextPrompts() {
     return false;
 }
 
-function addNativeTitleWand(root) {
+function addNativeWand(root, selector, handle) {
     if (!hasAllPlainTextPrompts()) return;
-    (root || document).querySelectorAll('input[name="title"], input[name$="[title]"]').forEach(function(input) {
+    (root || document).querySelectorAll(selector).forEach(function(input) {
         var field = input.closest('.field');
-        if (!field || field.querySelector('.ai-wand-btn[data-field="title"]')) return;
+        if (!field || field.querySelector('.ai-wand-btn[data-field="' + handle + '"]')) return;
 
         var wrapper = document.createElement('div');
         wrapper.className = 'ai-wand-wrapper';
@@ -55,7 +55,7 @@ function addNativeTitleWand(root) {
         btn.type = 'button';
         btn.className = 'ai-wand-btn btn small icon';
         btn.dataset.icon = 'wand-magic-sparkles';
-        btn.dataset.field = 'title';
+        btn.dataset.field = handle;
         btn.dataset.type = 'PlainText';
 
         wrapper.appendChild(btn);
@@ -64,14 +64,22 @@ function addNativeTitleWand(root) {
     });
 }
 
+// Inject wands next to Craft's native (non-custom-field) text attributes.
+// These are rendered by field-layout elements, not Field objects, so the
+// server-side EVENT_DEFINE_INPUT_HTML never fires for them.
+function addNativeFieldWands(root) {
+    addNativeWand(root, 'input[name="title"], input[name$="[title]"]', 'title');
+    addNativeWand(root, 'textarea[name="alt"], textarea[name$="[alt]"]', 'alt');
+}
+
 // Position any wand buttons already in the DOM
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
-        addNativeTitleWand();
+        addNativeFieldWands();
         positionAllWands();
     });
 } else {
-    addNativeTitleWand();
+    addNativeFieldWands();
     positionAllWands();
 }
 
@@ -83,7 +91,7 @@ new MutationObserver(function(mutations) {
             if (node.matches && node.matches('.ai-wand-btn')) {
                 positionWandButton(node);
             } else if (node.querySelectorAll) {
-                addNativeTitleWand(node);
+                addNativeFieldWands(node);
                 node.querySelectorAll('.ai-wand-btn').forEach(positionWandButton);
             }
         });
@@ -264,7 +272,7 @@ document.addEventListener('click', function(event) {
 
             var clickedFieldContainer = btn.closest('.field');
             var targetInput = clickedFieldContainer
-                ? clickedFieldContainer.querySelector('input[name="title"], input[name$="[title]"], input[name*="fields"], textarea[name*="fields"]')
+                ? clickedFieldContainer.querySelector('input[name="title"], input[name$="[title]"], textarea[name="alt"], textarea[name$="[alt]"], input[name*="fields"], textarea[name*="fields"]')
                 : null;
             
             var selectedPromptUid = item.dataset.promptUid;
