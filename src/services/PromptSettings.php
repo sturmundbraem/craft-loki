@@ -16,6 +16,8 @@ class PromptSettings extends Component
     private const PROMPTS = 'prompts';
     private const FIELD_ASSIGNMENTS = 'fieldAssignments';
     private const FIELD_ORDER = 'fieldOrder';
+    // Stored as its own row (JSON true/false) so admins can change it on every environment
+    private const ADMIN_ONLY = 'promptEditingAdminOnly';
 
     private ?array $_all = null;
 
@@ -78,9 +80,37 @@ class PromptSettings extends Component
             self::PROMPTS => $stored[self::PROMPTS] ?? $this->arrayValue($legacy[self::PROMPTS] ?? null, self::defaultPrompts()),
             self::FIELD_ASSIGNMENTS => $stored[self::FIELD_ASSIGNMENTS] ?? $this->arrayValue($legacy[self::FIELD_ASSIGNMENTS] ?? null),
             self::FIELD_ORDER => $stored[self::FIELD_ORDER] ?? $this->arrayValue($legacy[self::FIELD_ORDER] ?? null),
+            self::ADMIN_ONLY => ($stored[self::ADMIN_ONLY] ?? false) === true,
         ];
 
         return $this->_all;
+    }
+
+    public function isPromptEditingAdminOnly(): bool
+    {
+        return $this->getAll()[self::ADMIN_ONLY];
+    }
+
+    public function savePromptEditingAdminOnly(bool $value): void
+    {
+        if (!$this->tableExists()) {
+            throw new \RuntimeException('The Craft Loki prompt settings table does not exist. Run plugin migrations first.');
+        }
+
+        $this->saveValue(self::ADMIN_ONLY, $value);
+        $this->_all = null;
+    }
+
+    // Single source of truth for who may edit prompts (used by the page and the save action)
+    public function canEditPrompts(): bool
+    {
+        $user = Craft::$app->getUser()->getIdentity();
+        if (!$user) {
+            return false;
+        }
+
+        // Switch off: any logged-in user may edit
+        return !$this->isPromptEditingAdminOnly() || $user->admin;
     }
 
     public function getPrompts(): array
@@ -119,7 +149,7 @@ class PromptSettings extends Component
         $values = [];
         foreach ($rows as $row) {
             $decoded = json_decode((string)$row['value'], true);
-            if (is_array($decoded)) {
+            if (is_array($decoded) || is_bool($decoded)) {
                 $values[$row['name']] = $decoded;
             }
         }
@@ -127,7 +157,7 @@ class PromptSettings extends Component
         return $values;
     }
 
-    private function saveValue(string $name, array $value): void
+    private function saveValue(string $name, array|bool $value): void
     {
         $db = Craft::$app->getDb();
         $now = Db::prepareDateForDb(new \DateTime());
