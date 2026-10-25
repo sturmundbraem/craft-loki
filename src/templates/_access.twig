@@ -5,8 +5,8 @@
    It is stored in the DB and saved via AJAX instead, so it can be changed on every environment. #}
 <hr>
 {{ forms.lightswitchField({
-    label: 'Allow prompt editing only for admin users',
-    instructions: 'When off, every user can edit prompts. When on, non-admin users see the Prompts page read-only. Saved immediately, on every environment.',
+    label: 'Allow prompt editing only for admin users'|t('craft-loki'),
+    instructions: 'When off, every user can edit prompts. When on, non-admin users see the Prompts page read-only. Saved immediately, on every environment.'|t('craft-loki'),
     id: 'promptEditingAdminOnly',
     on: promptEditingAdminOnly,
 }) }}

@@ -5,6 +5,7 @@ namespace stubr\controllers;
 use Craft;
 use craft\web\Controller;
 use stubr\Plugin;
+use stubr\services\PromptTranslator;
 use craft\helpers\StringHelper;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
@@ -75,7 +76,9 @@ class PromptsController extends Controller{
         $enabled = (bool)Craft::$app->getRequest()->getRequiredBodyParam('enabled');
         Plugin::$plugin->getPromptSettings()->savePromptEditingAdminOnly($enabled);
 
-        return $this->asSuccess($enabled ? 'Prompt editing is now limited to admins.' : 'Prompt editing is now open to all users.');
+        return $this->asSuccess($enabled
+            ? Craft::t('craft-loki', 'Prompt editing is now limited to admins.')
+            : Craft::t('craft-loki', 'Prompt editing is now open to all users.'));
     }
 
 
@@ -87,7 +90,7 @@ class PromptsController extends Controller{
 
         // Not requireAdmin(): that also requires allowAdminChanges, which blocks saving on prod
         if (!$promptSettings->canEditPrompts()) {
-            throw new ForbiddenHttpException('User is not permitted to edit prompts.');
+            throw new ForbiddenHttpException(Craft::t('craft-loki', 'User is not permitted to edit prompts.'));
         }
 
         $promptData = $promptSettings->getAll();
@@ -140,11 +143,18 @@ class PromptsController extends Controller{
                 : ($existingPrompt['allCKEditor'] ?? '');
         }
 
+        // Translate new/changed custom prompts with DeepL; never blocks saving
+        $translationError = (new PromptTranslator())->translate($prompts, $existingPromptsByUid);
+
         $promptSettings->saveAll([
             'prompts' => $prompts,
             'fieldAssignments' => $fieldAssignments,
             'fieldOrder' => $fieldOrder,
         ]);
+
+        if ($translationError) {
+            Craft::$app->getSession()->setError($translationError);
+        }
 
         return $this->redirect('craft-loki/prompts');
     }

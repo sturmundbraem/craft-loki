@@ -26,7 +26,7 @@ class Plugin extends \craft\base\Plugin
     private ?PromptSettings $_promptSettings = null;
 
     // Database schema version — increment when you change database structure
-    public string $schemaVersion = "1.0.2";
+    public string $schemaVersion = "1.0.4";
 
     // Show a settings page for this plugin in the CP
     public bool $hasCpSettings = true;
@@ -99,8 +99,8 @@ class Plugin extends \craft\base\Plugin
         $item['fontIcon'] = 'wand-magic-sparkles';
 
         $item['subnav'] = [
-            'prompts' => ['label' => 'Prompts', 'url' => 'craft-loki/prompts'],
-            'settings' => ['label' => 'Settings', 'url' => 'settings/plugins/craft-loki'],
+            'prompts' => ['label' => Craft::t('craft-loki', 'Prompts'), 'url' => 'craft-loki/prompts'],
+            'settings' => ['label' => Craft::t('craft-loki', 'Settings'), 'url' => 'settings/plugins/craft-loki'],
         ]; 
         
         return $item;
@@ -150,17 +150,28 @@ class Plugin extends \craft\base\Plugin
                 $promptsByUid = [];
                 foreach ($prompts as $prompt) {
                     if (!empty($prompt['uid'])) {
-                        $promptsByUid[$prompt['uid']] = $prompt;
+                        // Label (and text, for custom prompts) in the user's CP language
+                        $promptsByUid[$prompt['uid']] = $promptSettings->localize($prompt);
                     }
                 }
                 Craft::$app->getView()->registerJs('var aiPrompts = ' . json_encode($promptsByUid) . ';', \yii\web\View::POS_HEAD);
+
+                // Make these strings available to Craft.t() in fieldHelper.js
+                $view->registerTranslations('craft-loki', [
+                    '{label} (Draft)',
+                    'Draft created!',
+                    'Field filled — review and save when ready.',
+                    'Error: {message}',
+                    'Server returned {status}',
+                ]);
+                $view->registerTranslations('app', ['Title', 'Alternative Text']);
 
                 $fieldAssignments = $promptSettings->getFieldAssignments();
                 Craft::$app->getView()->registerJs('var aiFieldAssignments = ' . json_encode($fieldAssignments) . ';', \yii\web\View::POS_HEAD);
 
                 // Get the field's handle (e.g. "subtitle") and type (e.g. "PlainText")
                 $fieldHandle = $event->sender->handle;
-                $fieldLabel = $event->sender->name;   // human-readable label, e.g. "Subtitle"
+                $fieldLabel = Craft::t('site', $event->sender->name);   // human-readable label, e.g. "Subtitle" (translated like Craft does)
                 if ($event->sender instanceof \craft\fields\PlainText) {
                     $fieldType = 'PlainText';
                 } else if ($event->sender instanceof \craft\ckeditor\Field) {

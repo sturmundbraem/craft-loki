@@ -19,6 +19,9 @@ class PromptSettings extends Component
     // Stored as its own row (JSON true/false) so admins can change it on every environment
     private const ADMIN_ONLY = 'promptEditingAdminOnly';
 
+    // Added in a later release; a migration appends it to installs that already have prompts saved
+    public const QUOTES_PROMPT_UID = '128ba0d7-d3ba-47b3-9c48-9ef1ac51c3a5';
+
     private ?array $_all = null;
 
     public static function defaultPrompts(): array
@@ -64,7 +67,31 @@ class PromptSettings extends Component
                 'allPlainText' => '1',
                 'allCKEditor' => '1',
             ],
+            [
+                'uid' => self::QUOTES_PROMPT_UID,
+                'text' => <<<TXT
+                Correct all quotation marks in the text. The text is written in {{ siteLang }}; use that language's style:
+                - German and Italian: «double» and ‹single›, no spaces inside.
+                - French: « double » and ‹ single ›, with a non-breaking space inside the quotation marks.
+                - English: “double” and ‘single’.
+                - Any other language: its standard typographic quotation marks.
+                Only change quotation marks. Do not change apostrophes (e.g. it's, l'amour, geht's), HTML tags or HTML attribute values, or anything else in the text.
+                TXT,
+                'label' => 'Correct quotes',
+                'provider' => 'openai',
+                'effort' => 'medium',
+                'createDraft' => '',
+                'allPlainText' => '1',
+                'allCKEditor' => '1',
+            ],
         ];
+    }
+
+    public static function quotesPrompt(): array
+    {
+        $prompts = array_column(self::defaultPrompts(), null, 'uid');
+
+        return $prompts[self::QUOTES_PROMPT_UID];
     }
 
     public function getAll(): array
@@ -116,6 +143,28 @@ class PromptSettings extends Component
     public function getPrompts(): array
     {
         return $this->getAll()[self::PROMPTS];
+    }
+
+    // Returns the prompt with label and text in the current user's CP language:
+    // 1) default prompts: label from the static translation files (text stays as is)
+    // 2) custom prompts: label and text from the DeepL translations saved with the prompt
+    // 3) otherwise: as entered
+    public function localize(array $prompt): array
+    {
+        $label = $prompt['label'] ?? '';
+        $staticLabel = Craft::t('craft-loki', $label);
+
+        if ($staticLabel !== $label) {
+            $prompt['label'] = $staticLabel;
+        } else {
+            $translation = $prompt['translations'][substr(Craft::$app->language, 0, 2)] ?? [];
+            $prompt['label'] = $translation['label'] ?? $label;
+            $prompt['text'] = $translation['text'] ?? ($prompt['text'] ?? '');
+        }
+
+        unset($prompt['translations']);
+
+        return $prompt;
     }
 
     public function getFieldAssignments(): array

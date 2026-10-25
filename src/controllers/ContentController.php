@@ -39,15 +39,17 @@ class ContentController extends \craft\web\Controller
             }
         }
         if ($matchedPrompt === null) {
-            return $this->asJson(['error' => 'Invalid prompt'], 400);
+            return $this->asJson(['error' => Craft::t('craft-loki', 'Invalid prompt')], 400);
         }
+        // Custom prompts: send the instruction in the editor's CP language (DeepL translation, if any)
+        $matchedPrompt = Plugin::$plugin->getPromptSettings()->localize($matchedPrompt);
         $prompt = $matchedPrompt['text'] ?? '';
         $provider = $matchedPrompt['provider'] ?? $provider;
         $basePrompt = $settings->basePrompt ?? '';
 
         $allowedProviders = ['openai', 'claude', 'deepl'];
         if (!in_array($provider, $allowedProviders, true)) {
-            return $this->asJson(['error' => 'Invalid provider'], 400);
+            return $this->asJson(['error' => Craft::t('craft-loki', 'Invalid provider')], 400);
         }
 
         // Per-prompt effort level; falls back to medium for prompts saved
@@ -64,7 +66,7 @@ class ContentController extends \craft\web\Controller
 
 
         if (!$entry) {
-            return $this->asJson(['error' => 'Element not found'], 404);
+            return $this->asJson(['error' => Craft::t('craft-loki', 'Element not found')], 404);
         }
 
         // $this->requirePermission('edit-entries:' . $entry->section->uid);
@@ -72,7 +74,7 @@ class ContentController extends \craft\web\Controller
         // Native (non-custom-field) attributes handled directly, e.g. title, alt
         $isNativeAttr = in_array($fieldHandle, ['title', 'alt'], true);
         if (!$isNativeAttr && !$entry->getFieldLayout()->getFieldByHandle($fieldHandle)) {
-            return $this->asJson(['error' => 'Invalid field'], 400);
+            return $this->asJson(['error' => Craft::t('craft-loki', 'Invalid field')], 400);
         }
 
         $site = Craft::$app->getSites()->getSiteById($siteId);
@@ -98,6 +100,11 @@ class ContentController extends \craft\web\Controller
         
         $prompt     = Craft::$app->getView()->renderString($prompt, $twigVars);
         $basePrompt = Craft::$app->getView()->renderString($basePrompt, $twigVars);
+
+        // Always answer in the site's language, so e.g. "Summarize" on the de-CH site writes German even if
+        // the page content is still English. Prompts that name a language (e.g. "Translate to EN") still win.
+        $languageName = Craft::$app->getI18n()->getLocaleById($site->language)->getDisplayName('en');
+        $basePrompt = trim($basePrompt . "\n\nWrite the output in {$languageName} ({$site->language}), the language of this site, unless the task explicitly asks for a different language.");
 
         $context = 'Title: ' . $entryTitle . "\n";
         foreach ($fieldValues as $handle => $value) {
@@ -166,7 +173,7 @@ class ContentController extends \craft\web\Controller
             }
 
             if (!$target) {
-                return $this->asJson(['error' => 'Could not locate target element in the draft.'], 500);
+                return $this->asJson(['error' => Craft::t('craft-loki', 'Could not locate target element in the draft.')], 500);
             }
 
             // Apply the user's unsaved edits to the target

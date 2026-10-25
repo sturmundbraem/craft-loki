@@ -1,6 +1,6 @@
 {% extends "_layouts/cp" %}
 {% import '_includes/forms.twig' as forms %}
-{% set title = "AI Prompts" %}
+{% set title = "AI Prompts"|t('craft-loki') %}
 {% set readOnly = readOnly ?? false %}
 
 {% block contentNotice %}
@@ -11,7 +11,7 @@
 
 {% block actionButton %}
     {% if not readOnly %}
-        <button type="submit" class="btn submit" form="prompts-form">Save prompt settings</button>
+        <button type="submit" class="btn submit" form="prompts-form">{{ 'Save prompt settings'|t('craft-loki') }}</button>
     {% endif %}
 {% endblock %}
 
@@ -19,15 +19,17 @@
     <form method="post" id="prompts-form">
         {{ csrfInput() }}
         {{ actionInput('craft-loki/prompts/save') }}
-        <h2>Define your custom AI prompts</h2>
+        <h2>{{ 'Define your custom AI prompts'|t('craft-loki') }}</h2>
         <div class="instructions prompt-help">
             <p>
-                DeepL prompts are sent as the API <code>target_lang</code> value. Use the exact syntax from
-                <a href="https://developers.deepl.com/api-reference/translate#request-body-descriptions" target="_blank" rel="noopener">DeepL's Translate API docs</a>
-                and
-                <a href="https://developers.deepl.com/docs/getting-started/supported-languages" target="_blank" rel="noopener">supported languages list</a>,
-                for example <code>DE</code>, <code>FR</code>, <code>IT</code>, or <code>EN-GB</code>.
+                {{ 'DeepL prompts are sent as the API {targetLang} value. Use the exact syntax from {apiDocs} and {languageList}, for example {examples}.'|t('craft-loki', {
+                    targetLang: '<code>target_lang</code>',
+                    apiDocs: '<a href="https://developers.deepl.com/api-reference/translate#request-body-descriptions" target="_blank" rel="noopener">' ~ "DeepL's Translate API docs"|t('craft-loki') ~ '</a>',
+                    languageList: '<a href="https://developers.deepl.com/docs/getting-started/supported-languages" target="_blank" rel="noopener">' ~ 'supported languages list'|t('craft-loki') ~ '</a>',
+                    examples: '<code>DE</code>, <code>FR</code>, <code>IT</code>, <code>EN-GB</code>',
+                })|raw }}
             </p>
+            <p>{{ 'Default prompt labels are shown in each user’s language. Custom prompts are translated with DeepL when you save.'|t('craft-loki') }}</p>
         </div>
         {{ forms.editableTable({
             id: 'prompts',
@@ -40,15 +42,15 @@
                     class: 'uid-col',
                 },
                 text: {
-                    heading: 'PROMPT',
+                    heading: 'Prompt'|t('craft-loki')|upper,
                     type: 'multiline',
                 },
                 label: {
-                    heading: 'LABEL',
+                    heading: 'Label'|t('craft-loki')|upper,
                     type: 'singleline',
                 },
                 provider: {
-                    heading: 'PROVIDER',
+                    heading: 'Provider'|t('craft-loki')|upper,
                     type: 'select',
                     options: [
                         {label: 'OpenAI', value: 'openai'},
@@ -57,21 +59,21 @@
                     ],
                 },
                 effort: {
-                    heading: 'TIER',
+                    heading: 'Tier'|t('craft-loki')|upper,
                     type: 'select',
                     options: [
-                        {label: 'Easy', value: 'low'},
-                        {label: 'Medium', value: 'medium'},
-                        {label: 'Hard', value: 'high'},
+                        {label: 'Easy'|t('craft-loki'), value: 'low'},
+                        {label: 'Medium'|t('craft-loki'), value: 'medium'},
+                        {label: 'Hard'|t('craft-loki'), value: 'high'},
                     ],
                 },
                 createDraft: {
-                    heading: 'CREATE DRAFT',
+                    heading: 'Create draft'|t('craft-loki')|upper,
                     type: 'checkbox',
                 }
             },
             rows: prompts,
-            addRowLabel: 'ADD PROMPT',
+            addRowLabel: 'Add prompt'|t('craft-loki')|upper,
             allowAdd: true,
             allowDelete: true,
             allowReorder: true,
@@ -79,36 +81,36 @@
         }}
 
         <hr>
-        <h2>Assign prompts to fields</h2>
+        <h2>{{ 'Assign prompts to fields'|t('craft-loki') }}</h2>
 
         <div style="display: flex; gap: 20px;">
             <div style="flex: 1; border: 1px solid #ccc; border-radius: 5px; padding: 10px;">
-                <h6 style="margin-bottom: 10px;">Fields</h6>
+                <h6 style="margin-bottom: 10px;">{{ 'Fields'|t('craft-loki') }}</h6>
 
                 <button type="button" class="btn field-select-btn" data-handle="__allPlainText" style="display:block; width: 100%; margin-bottom: 5px; text-align: left;">
-                    All Plaintext fields
+                    {{ 'All Plaintext fields'|t('craft-loki') }}
                 </button>
 
                 <button type="button" class="btn field-select-btn" data-handle="__allCKEditor" style="display:block; width: 100%; margin-bottom: 5px; text-align: left;">
-                    All Richtext fields
+                    {{ 'All Richtext fields'|t('craft-loki') }}
                 </button>
 
                 {% for field in allFields %}
                     <div class="field-list-item" style="display: flex; align-items: center; gap: 6px; margin-bottom: 5px;">
-                        <a class="move icon" title="Reorder"></a>
+                        <a class="move icon" title="{{ 'Reorder'|t('app') }}"></a>
                         <button type="button" class="btn field-select-btn"
                                 data-handle="{{ field.handle }}"
                                 style="flex: 1; text-align: left;">
-                            {{ field.name }}
+                            {{ field.name|t('site') }}
                         </button>
                     </div>
                 {% endfor %}
             </div>
 
             <div style="flex: 1; border: 1px solid #ccc; border-radius: 5px; padding: 10px;">
-                <h6 style="margin-bottom: 10px;">Prompts</h6>
+                <h6 style="margin-bottom: 10px;">{{ 'Prompts'|t('craft-loki') }}</h6>
                 <div id="prompt-checkboxes">
-                    <p style="color: #999;">Select a field to see its prompts</p>
+                    <p style="color: #999;">{{ 'Select a field to see its prompts'|t('craft-loki') }}</p>
                 </div>
                 <div id="hidden-assignments"></div>
             </div>
@@ -226,7 +228,7 @@
                 var disabled = readOnly ? 'disabled' : '';
                 html += '<label style="display:block; margin-bottom:8px;">'
                     + '<input type="checkbox" name="' + inputName + '" value="' + prompt.uid + '" ' + checked + ' ' + disabled + '> '
-                    + (prompt.label || '(unnamed)')
+                    + (prompt.label || {{ '(unnamed)'|t('craft-loki')|json_encode|raw }})
                     + '</label>';
             });
             container.innerHTML = html;
@@ -268,7 +270,7 @@
             var promptInput = row.querySelector('textarea[name$="[text]"]');
             if (!providerSelect || !promptInput) return;
 
-            promptInput.placeholder = providerSelect.value === 'deepl' ? 'DeepL: only add target_lang' : '';
+            promptInput.placeholder = providerSelect.value === 'deepl' ? {{ 'DeepL: only add target_lang'|t('craft-loki')|json_encode|raw }} : '';
         }
 
         document.querySelectorAll('#prompts tbody tr').forEach(updatePromptPlaceholder);
