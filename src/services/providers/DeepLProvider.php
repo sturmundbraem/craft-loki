@@ -9,6 +9,14 @@ use stubr\Plugin;
 
 class DeepLProvider implements LlmProviderInterface
 {
+    // DeepL Free keys end in ":fx" and use a different host than Pro keys
+    public static function apiUrl(string $apiKey): string
+    {
+        return str_ends_with($apiKey, ':fx')
+            ? 'https://api-free.deepl.com/v2/translate'
+            : 'https://api.deepl.com/v2/translate';
+    }
+
     // DeepL is a translation API, not an LLM — it has no effort concept, so
     // $options is accepted (the interface requires it) and ignored.
     public function generateText($prompt, $context, $fieldHandle, string $systemPrompt, array $options = []):string {
@@ -25,7 +33,7 @@ class DeepLProvider implements LlmProviderInterface
         $textToTranslate = $matches[1] ?? '';
 
         try {
-            $response = $client->post('https://api-free.deepl.com/v2/translate', [
+            $response = $client->post(self::apiUrl($apiKey), [
                 'headers' => [
                     'Authorization' => 'DeepL-Auth-Key ' . $apiKey,
                 ],

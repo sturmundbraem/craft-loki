@@ -70,8 +70,8 @@ function addNativeWand(root, selector, handle, label) {
 // These are rendered by field-layout elements, not Field objects, so the
 // server-side EVENT_DEFINE_INPUT_HTML never fires for them.
 function addNativeFieldWands(root) {
-    addNativeWand(root, 'input[name="title"], input[name$="[title]"]', 'title', 'Title');
-    addNativeWand(root, 'textarea[name="alt"], textarea[name$="[alt]"]', 'alt', 'Alternative Text');
+    addNativeWand(root, 'input[name="title"], input[name$="[title]"]', 'title', Craft.t('app', 'Title'));
+    addNativeWand(root, 'textarea[name="alt"], textarea[name$="[alt]"]', 'alt', Craft.t('app', 'Alternative Text'));
 }
 
 // Position any wand buttons already in the DOM
@@ -210,7 +210,7 @@ document.addEventListener('click', function(event) {
 
             var labelText = prompts[promptKey].label;
             if (prompts[promptKey].createDraft === '1') {
-                labelText = labelText + ' (Draft)';
+                labelText = Craft.t('craft-loki', '{label} (Draft)', { label: labelText });
             }
             var labelSpan = document.createElement('span');
             labelSpan.textContent = labelText;
@@ -361,7 +361,7 @@ document.addEventListener('click', function(event) {
             })
             .then(function(response) { 
                 if (!response.ok) {
-                    throw new Error('Server returned ' + response.status);
+                    throw new Error(Craft.t('craft-loki', 'Server returned {status}', { status: response.status }));
                 }
                 return response.json(); 
             })
@@ -370,9 +370,9 @@ document.addEventListener('click', function(event) {
                 overlay.remove();
                 document.querySelectorAll('.ai-wand-btn').forEach(function(b) { b.disabled = false; });
                 if (data.error) {
-                    alert('Error: ' + data.error);
+                    alert(Craft.t('craft-loki', 'Error: {message}', { message: data.error }));
                 } else if (data.draftUrl) {
-                    Craft.cp.displayNotice('Draft created!');
+                    Craft.cp.displayNotice(Craft.t('craft-loki', 'Draft created!'));
                     window.location.href = data.draftUrl;
                 } else {
                     // using the
@@ -395,14 +395,14 @@ document.addEventListener('click', function(event) {
                         fieldEl.dispatchEvent(new Event('input', { bubbles: true }));
                     }
                     
-                    Craft.cp.displayNotice('Field filled — review and save when ready.');
+                    Craft.cp.displayNotice(Craft.t('craft-loki', 'Field filled — review and save when ready.'));
                 }
 
             })
             .catch(function(error) {
                 overlay.remove();
                 document.querySelectorAll('.ai-wand-btn').forEach(function(b) { b.disabled = false; });
-                alert('Error: ' + error.message);
+                alert(Craft.t('craft-loki', 'Error: {message}', { message: error.message }));
             });
 
         });

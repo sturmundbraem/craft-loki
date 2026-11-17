@@ -1,0 +1,28 @@
+{% import '_includes/forms.twig' as forms %}
+
+{# No `name` on purpose: the switch is not part of Craft's settings form (which saves to project config).
+   Without a name there is no hidden input, so Craft's read-only mode can't disable it.
+   It is stored in the DB and saved via AJAX instead, so it can be changed on every environment. #}
+<hr>
+{{ forms.lightswitchField({
+    label: 'Allow prompt editing only for admin users'|t('craft-loki'),
+    instructions: 'When off, every user can edit prompts. When on, non-admin users see the Prompts page read-only. Saved immediately, on every environment.'|t('craft-loki'),
+    id: 'promptEditingAdminOnly',
+    on: promptEditingAdminOnly,
+}) }}
+
+{% js %}
+    $('#{{ 'promptEditingAdminOnly'|namespaceInputId }}').on('change', function() {
+        var lightswitch = $(this).data('lightswitch');
+
+        Craft.sendActionRequest('POST', 'craft-loki/prompts/save-admin-only', {
+            data: {enabled: lightswitch.on ? 1 : 0},
+        })
+            .then(function(response) {
+                Craft.cp.displaySuccess(response.data.message);
+            })
+            .catch(function(error) {
+                Craft.cp.displayError(error?.response?.data?.message);
+            });
+    });
+{% endjs %}

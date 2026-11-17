@@ -8,6 +8,7 @@ use craft\base\Model;
 use craft\base\Field;
 use craft\events\DefineFieldHtmlEvent;
 use craft\events\RegisterComponentTypesEvent;
+use craft\helpers\Html;
 use craft\services\Fields;
 use craft\services\Plugins;
 
@@ -25,7 +26,7 @@ class Plugin extends \craft\base\Plugin
     private ?PromptSettings $_promptSettings = null;
 
     // Database schema version — increment when you change database structure
-    public string $schemaVersion = "1.0.2";
+    public string $schemaVersion = "1.0.4";
 
     // Show a settings page for this plugin in the CP
     public bool $hasCpSettings = true;
@@ -43,15 +44,45 @@ class Plugin extends \craft\base\Plugin
     // This is shown when admin goes to Settings > Plugins > your plugin
     protected function settingsHtml(): string
     {
-        
+        return $this->projectConfigSettingsHtml() . $this->accessSettingsHtml();
+    }
+
+    // Same read-only page Craft renders when admin changes are disallowed (prod),
+    // except the DB-stored access switch is added after the inputs are disabled, so it stays editable
+    public function getReadOnlySettingsResponse(): mixed
+    {
+        $settingsHtml = Craft::$app->getView()->namespaceInputs(function() {
+            return Html::disableInputs(fn() => $this->projectConfigSettingsHtml()) . $this->accessSettingsHtml();
+        }, 'settings');
+
+        return Craft::$app->controller->renderTemplate('settings/plugins/_settings.twig', [
+            'plugin' => $this,
+            'settingsHtml' => $settingsHtml,
+            'readOnly' => true,
+        ]);
+    }
+
+    // Settings saved by Craft to project config (API keys, system prompt)
+    private function projectConfigSettingsHtml(): string
+    {
         // Render the Twig template and pass it the settings + fields data
-        return \Craft::$app->getView()->renderTemplate(
+        return Craft::$app->getView()->renderTemplate(
             'craft-loki/settings.twig',
             [
                 'settings' => $this->getSettings(),
             ]
         );
+    }
 
+    // Settings stored in the DB and saved via AJAX, so they work on every environment
+    private function accessSettingsHtml(): string
+    {
+        return Craft::$app->getView()->renderTemplate(
+            'craft-loki/_access.twig',
+            [
+                'promptEditingAdminOnly' => $this->getPromptSettings()->isPromptEditingAdminOnly(),
+            ]
+        );
     }
 
     public function getPromptSettings(): PromptSettings
@@ -68,8 +99,8 @@ class Plugin extends \craft\base\Plugin
         $item['fontIcon'] = 'wand-magic-sparkles';
 
         $item['subnav'] = [
-            'prompts' => ['label' => 'Prompts', 'url' => 'craft-loki/prompts'],
-            'settings' => ['label' => 'Settings', 'url' => 'settings/plugins/craft-loki'],
+            'prompts' => ['label' => Craft::t('craft-loki', 'Prompts'), 'url' => 'craft-loki/prompts'],
+            'settings' => ['label' => Craft::t('craft-loki', 'Settings'), 'url' => 'settings/plugins/craft-loki'],
         ]; 
         
         return $item;
@@ -119,17 +150,28 @@ class Plugin extends \craft\base\Plugin
                 $promptsByUid = [];
                 foreach ($prompts as $prompt) {
                     if (!empty($prompt['uid'])) {
-                        $promptsByUid[$prompt['uid']] = $prompt;
+                        // Label (and text, for custom prompts) in the user's CP language
+                        $promptsByUid[$prompt['uid']] = $promptSettings->localize($prompt);
                     }
                 }
                 Craft::$app->getView()->registerJs('var aiPrompts = ' . json_encode($promptsByUid) . ';', \yii\web\View::POS_HEAD);
+
+                // Make these strings available to Craft.t() in fieldHelper.js
+                $view->registerTranslations('craft-loki', [
+                    '{label} (Draft)',
+                    'Draft created!',
+                    'Field filled — review and save when ready.',
+                    'Error: {message}',
+                    'Server returned {status}',
+                ]);
+                $view->registerTranslations('app', ['Title', 'Alternative Text']);
 
                 $fieldAssignments = $promptSettings->getFieldAssignments();
                 Craft::$app->getView()->registerJs('var aiFieldAssignments = ' . json_encode($fieldAssignments) . ';', \yii\web\View::POS_HEAD);
 
                 // Get the field's handle (e.g. "subtitle") and type (e.g. "PlainText")
                 $fieldHandle = $event->sender->handle;
-                $fieldLabel = $event->sender->name;   // human-readable label, e.g. "Subtitle"
+                $fieldLabel = Craft::t('site', $event->sender->name);   // human-readable label, e.g. "Subtitle" (translated like Craft does)
                 if ($event->sender instanceof \craft\fields\PlainText) {
                     $fieldType = 'PlainText';
                 } else if ($event->sender instanceof \craft\ckeditor\Field) {
