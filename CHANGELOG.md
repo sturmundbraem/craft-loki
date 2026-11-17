@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 - 2026-11-16
 - Added "Allow prompt editing only for admin users" option to the plugin settings (stored in the database and saved instantly, so admins can change it on every environment; default: off).
 - Prompts can now be edited on all environments, including where admin changes are disallowed.
 - Non-admin users can edit prompts unless the admin-only option is on, in which case they see the page read-only.
